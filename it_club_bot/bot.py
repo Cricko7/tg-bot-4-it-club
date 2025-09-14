@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from config import TOKEN
 from services import db
-from handlers import start, registration, teams, admin
+from handlers import start, registration, teams, admin, user_commands
 
 async def main():
     db.init_db()  # обязательно вызвать тут
@@ -15,6 +15,7 @@ async def main():
     dp.include_router(registration.router)
     dp.include_router(teams.router)
     dp.include_router(admin.router)
+    dp.include_router(user_commands.router)
 
     await dp.start_polling(bot)
 
