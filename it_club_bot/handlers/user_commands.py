@@ -1,8 +1,9 @@
 from aiogram.dispatcher.router import Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from services import db
 from handlers.admin import get_admin_keyboard, ADMIN_IDS
+from handlers.main_keyboard import get_main_keyboard
+from services.db import AsyncDB
 
 router = Router()
 
@@ -14,8 +15,10 @@ async def cmd_start(message: Message):
             reply_markup=get_admin_keyboard()
         )
     else:
-        await message.answer("Привет! Для регистрации используй /register.")
+        keyboard = get_main_keyboard()
+        await message.answer("Привет! Для регистрации используй /register.\nВыберите кнопку:", reply_markup=keyboard)
 
+# Остальные команды ...
 
 @router.message(Command("help"))
 async def cmd_help(message: Message):
@@ -28,9 +31,9 @@ async def cmd_help(message: Message):
     await message.answer(help_text)
 
 @router.message(Command("mydata"))
-async def cmd_mydata(message: Message):
+async def cmd_mydata(message: Message, db: AsyncDB):
     user_id = message.from_user.id
-    data = db.get_registration(user_id)
+    data = await db.get_registration(user_id)
     if data:
         await message.answer(
             f"Ваши данные:\n\n"

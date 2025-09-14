@@ -1,6 +1,7 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from services.db import AsyncDB
 from aiogram.fsm.state import State, StatesGroup
 from services import db
 
@@ -29,13 +30,13 @@ async def process_group(message: types.Message, state: FSMContext):
     await state.set_state(RegisterStates.waiting_for_stack)
 
 @router.message(RegisterStates.waiting_for_stack)
-async def process_stack(message: types.Message, state: FSMContext):
+async def process_stack(message: types.Message, state: FSMContext, db: AsyncDB):
     await state.update_data(stack=message.text)
     data = await state.get_data()
     user_id = message.from_user.id
 
-    # Сохраняем в базу
-    db.save_registration(
+    # Сохраняем в базу через объект db
+    await db.save_registration(
         user_id=user_id,
         name=data["name"],
         group_name=data["group"],
