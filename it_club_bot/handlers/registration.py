@@ -29,13 +29,21 @@ async def process_group(message: types.Message, state: FSMContext):
     await message.answer("Введите ваш стек технологий:")
     await state.set_state(RegisterStates.waiting_for_stack)
 
+@router.message(Command("cancel"))
+async def cancel_registration(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        await message.answer("Регистрация не запущена.")
+        return
+    await state.clear()
+    await message.answer("Регистрация отменена.")
+
 @router.message(RegisterStates.waiting_for_stack)
 async def process_stack(message: types.Message, state: FSMContext, db: AsyncDB):
     await state.update_data(stack=message.text)
     data = await state.get_data()
     user_id = message.from_user.id
 
-    # Сохраняем в базу через объект db
     await db.save_registration(
         user_id=user_id,
         name=data["name"],
@@ -50,4 +58,7 @@ async def process_stack(message: types.Message, state: FSMContext, db: AsyncDB):
         f"Стек: {data['stack']}\n\n"
         "Спасибо за вашу заявку!"
     )
+
+
     await state.clear()
+
