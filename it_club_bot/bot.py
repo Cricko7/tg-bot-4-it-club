@@ -11,7 +11,7 @@ from handlers.admin_exports import router as admin_exports_router
 from handlers.admin_remove import router as admin_remove_router
 from handlers.admin_panel import router as admin_panel_router
 from handlers.admin_callbacks import router as admin_callbacks_router
-
+from handlers.events import router as events_router
 
 db_instance = AsyncDB()
 
@@ -34,6 +34,7 @@ async def main():
     dp.include_router(admin_callbacks_router)
     dp.include_router(admin_panel_router)
     dp.include_router(user_commands.router)
+    dp.include_router(events_router)
     dp.include_router(admin_remove_router)  # где admin_remove_router — импортированный router из файла с удалением
 
 
