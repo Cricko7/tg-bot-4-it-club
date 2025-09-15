@@ -1,14 +1,20 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 from services.db import AsyncDB
+import os
+from dotenv import load_dotenv
 
 router = Router()
 
-ADMINS = {1185406379, 780183740, 5612474540}  # Здесь укажите Telegram ID админов
+load_dotenv()
+
+TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))  # Преобразуем в список int
+
 
 @router.message(Command("remove_user"))
 async def remove_user(message: types.Message, db: AsyncDB):
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in ADMIN_IDS:
         await message.answer("У вас нет прав для удаления участников.")
         return
 
@@ -27,7 +33,7 @@ async def remove_user(message: types.Message, db: AsyncDB):
 
 @router.message(Command("remove_team"))
 async def remove_team(message: types.Message, db: AsyncDB):
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in ADMIN_IDS:
         await message.answer("У вас нет прав для удаления команд.")
         return
 

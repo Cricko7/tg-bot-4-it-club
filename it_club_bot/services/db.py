@@ -163,6 +163,7 @@ class AsyncDB:
         await self.conn.execute("UPDATE teams SET name = ? WHERE owner_id = ?", (new_name, owner_id))
         await self.conn.commit()
 
+
     async def list_teams(self):
         teams = []
         async with self.conn.execute("SELECT team_id, name FROM teams") as cursor:
@@ -256,3 +257,4 @@ class AsyncDB:
                 "event_end": row[6],
             }
         return None
+

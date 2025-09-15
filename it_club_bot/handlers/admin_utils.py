@@ -1,6 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import os
+from dotenv import load_dotenv
 
-ADMIN_IDS = {1185406379, 780183740, 5612474540}
+load_dotenv()
+
+TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))  # Преобразуем в список int
+
 
 def get_admin_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
