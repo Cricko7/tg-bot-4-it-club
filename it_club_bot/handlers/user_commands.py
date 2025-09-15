@@ -6,6 +6,8 @@ from aiogram import types
 from handlers.admin import get_admin_keyboard, ADMIN_IDS
 from handlers.main_keyboard import get_main_keyboard
 from services.db import AsyncDB
+from aiogram.types import BotCommand
+from aiogram import Bot
 
 router = Router()
 
@@ -19,6 +21,34 @@ commands_kb = ReplyKeyboardMarkup(
     one_time_keyboard=False
 )
 
+async def set_user_commands(bot: Bot):
+    commands = [
+    BotCommand(command="start", description="Запустить бота"),
+    BotCommand(command="help", description="Помощь и инструкции"),
+    BotCommand(command="register", description="Начать регистрацию участника в системе"),
+    BotCommand(command="mydata", description="Показать мои данные"),
+    BotCommand(command="list_teams", description="Список команд (например, для вступления..)"),
+    BotCommand(command="list_events", description="Просмотр мероприятий (для участия)"),
+    BotCommand(command="create_team", description="Создать команду"),
+    BotCommand(command="join_team", description="Вступить в команду"),
+    BotCommand(command="rename_team", description="Переименовать команду"),
+    BotCommand(command="delete_team", description="Удалить команду"),
+    BotCommand(command="my_events", description="Мои мероприятия"),
+    BotCommand(command="join_event", description="Записаться на мероприятие"),
+    BotCommand(command="cancel_application", description="Отменить заявку (отказ от участия)"),
+    # Команды, помеченные как админские, необязательно показывать всем
+    BotCommand(command="adminpanel", description="Панель администратора"),
+    BotCommand(command="export_users_csv", description="Экспорт списка пользователей"),
+    BotCommand(command="export_teams_xlsx", description="Экспорт списка команд"),
+    BotCommand(command="export_event", description="Экспорт участников мероприятия"),
+    BotCommand(command="remove_user", description="Удалить пользователя"),
+    BotCommand(command="delete_event", description="Удалить мероприятие"),
+    BotCommand(command="create_event", description="Создать мероприятие"),
+    BotCommand(command="check_applications", description="Проверить заявки (на вступление в клуб !)"),
+    BotCommand(command="invite_requests", description="Просмотр заявок на приглашение (когда создатель команды приглашает кого-то в команду)"),
+    BotCommand(command="manage_requests", description="Управление заявками (новых участников в команду)"),
+    ]
+    await bot.set_my_commands(commands)
 
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -40,6 +70,19 @@ async def cmd_help(message: Message):
         "/create_team — создать команду \n"
         "/rename_team — переименовать команду \n"
         "/join_team — присоединиться к существующей команде \n"
+        "/users_without_team — просмотреть список участников без команды \n"
+        "/team_members — Вывести список участников в своей команде \n"
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
+        ""
     )
     await message.answer(help_text)
 
@@ -61,6 +104,56 @@ async def cancel_application(message: types.Message, db: AsyncDB):
     await db.conn.execute("UPDATE registrations SET status = 'cancelled' WHERE user_id = ?", (user_id,))
     await db.conn.commit()
     await message.answer("Ваша заявка отменена. Вы можете подать новую заявку позже.")
+
+@router.message(Command("team_members"))
+async def team_members_handler(message: types.Message, db: AsyncDB):
+    user_id = message.from_user.id
+    # Получаем команду пользователя
+    team = await db.get_user_team(user_id)
+    if not team:
+        await message.answer("Вы не состоите в команде.")
+        return
+    
+    team_id = team['team_id']
+    
+    # Получаем список участников команды
+    query = """
+        SELECT r.user_id, r.name
+        FROM registrations r
+        JOIN teams_members tm ON r.user_id = tm.user_id
+        WHERE tm.team_id = ?
+    """
+    members = []
+    async with db.conn.execute(query, (team_id,)) as cursor:
+        async for row in cursor:
+            members.append(f"{row[1]} (ID: {row[0]})")
+    
+    if not members:
+        await message.answer("В вашей команде пока нет участников.")
+        return
+    
+    text = f"Участники команды '{team['name']}':\n\n" + "\n".join(members)
+    await message.answer(text)
+
+@router.message(Command("users_without_team"))
+async def users_without_team_handler(message: types.Message, db: AsyncDB):
+    query = """
+        SELECT r.user_id, r.name
+        FROM registrations r
+        LEFT JOIN teams_members tm ON r.user_id = tm.user_id
+        WHERE tm.user_id IS NULL
+    """
+    users = []
+    async with db.conn.execute(query) as cursor:
+        async for row in cursor:
+            users.append(f"{row[1]} (ID: {row[0]})")
+
+    if not users:
+        await message.answer("Все пользователи уже состоят в командах.")
+        return
+
+    text = "Пользователи без команды:\n\n" + "\n".join(users)
+    await message.answer(text)
 
 @router.message(Command("mydata"))
 async def cmd_mydata(message: types.Message, db: AsyncDB):

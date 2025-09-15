@@ -88,7 +88,7 @@ async def list_events_handler(message: Message, db: AsyncDB):
         return
     text = "Список мероприятий:\n\n"
     for ev in events:
-        text += f"[ID] {ev['event_id']}\n [Название] {ev['title']}\n\n [Период участия]: НАЧАЛО-КОНЕЦ (год-месяц-день):\n {ev['event_start']}–{ev['event_end']}\n"
+        text += f"[ID]\n {ev['event_id']}\n [Название] {ev['title']}\n\n [Период участия]: НАЧАЛО-КОНЕЦ (год-месяц-день):\n {ev['event_start']}–{ev['event_end']}\n"
     await message.answer(text)
 
 @router.message(Command("event_details"))
@@ -103,8 +103,8 @@ async def event_details_handler(message: Message, db: AsyncDB):
         await message.answer("Мероприятие не найдено.")
         return
     text = (
-        f"Название: {event['title']}\n"
-        f"Описание: {event['description']}\n"
+        f"Название:\n {event['title']}\n\n"
+        f"Описание:\n {event['description']}\n\n"
         f"\n Регистрация [НАЧАЛО-КОНЕЦ] (год-месяц-день):\n {event['registration_start']} — {event['registration_end']}\n"
         f"\n Мероприятие [НАЧАЛО-КОНЕЦ] (год-месяц-день):\n {event['event_start']} — {event['event_end']}"
     )

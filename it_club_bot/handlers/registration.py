@@ -13,7 +13,25 @@ class RegisterStates(StatesGroup):
     waiting_for_stack = State()
 
 @router.message(Command("register"))
-async def cmd_register_start(message: types.Message, state: FSMContext):
+async def cmd_register_start(message: types.Message, state: FSMContext, db: AsyncDB):
+    user_id = message.from_user.id
+    
+    query = "SELECT status FROM registrations WHERE user_id = ?"
+    async with db.conn.execute(query, (user_id,)) as cursor:
+        row = await cursor.fetchone()
+
+    if row is not None:
+        status = row[0]
+        if status == "approved":
+            await message.answer("Вы уже зарегистрированы. Создание второй заявки невозможно.")
+            return
+        elif status == "pending":
+            await message.answer("Ваша заявка уже на рассмотрении.")
+            return
+        elif status == "cancelled":
+            # Разрешаем повторную регистрацию
+            pass
+        
     await message.answer("Введите ваше ФИО:")
     await state.set_state(RegisterStates.waiting_for_name)
 

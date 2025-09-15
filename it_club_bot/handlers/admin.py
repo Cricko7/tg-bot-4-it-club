@@ -1,14 +1,21 @@
 from aiogram import Router, types, Bot, F
 from aiogram.filters import Command, Filter
 from handlers.admin_utils import get_admin_keyboard, ADMIN_IDS
-
+from aiogram.types import BotCommand, BotCommandScopeChat
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from services.db import AsyncDB
+from aiogram.types import Message
+import os
+from dotenv import load_dotenv
 
 router = Router()
 
 # Админские ID — замените на свои
-ADMIN_IDS = {1185406379, 780183740, 5612474540}
+load_dotenv()
+
+TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))  # Преобразуем в список int
+
 
 # Фильтр для админов
 class AdminFilter(Filter):
@@ -19,6 +26,25 @@ class AdminFilter(Filter):
         return message.from_user.id in self.admin_ids
 
 admin_filter = AdminFilter(admin_ids=ADMIN_IDS)
+
+admin_router = Router()
+
+@admin_router.message(Command("help_adm"), admin_filter)
+async def help_admin(message: Message):
+    help_text = (
+        "🛠 Команды администратора:\n\n"
+        "/adminpanel - Открыть админ-панель\n"
+        "/export_users_csv - Экспорт пользователей в CSV\n"
+        "/export_teams_xlsx - Экспорт команд в XLSX\n"
+        "/remove_user <id> - Удалить пользователя\n"
+        "/delete_event <id> - Удалить мероприятие\n"
+        "/create_event - Создать новое мероприятие\n"
+        "/check_applications - Проверить заявки\n"
+        "/invite_requests - Просмотр заявок на приглашение\n"
+        "/manage_requests - Управление заявками\n"
+        "/help_adm - Этот список команд\n"
+    )
+    await message.answer(help_text)
 
 # Клавиатура админ-панели
 @router.message(Command("adminpanel"), admin_filter)
