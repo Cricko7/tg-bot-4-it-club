@@ -31,5 +31,5 @@ def get_main_keyboard():
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     keyboard = get_main_keyboard()  # вызов функции, возвращающей клавиатуру
-    await message.answer("Добро пожаловать!", reply_markup=keyboard)
+    await message.answer("Добро пожаловать !!!!!!!!!!!!!", reply_markup=keyboard)
 
