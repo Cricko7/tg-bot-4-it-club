@@ -1,6 +1,6 @@
 from aiogram.dispatcher.router import Router
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.filters import Command
+from aiogram.filters import Command, Filter
 from aiogram.types import Message
 from aiogram import types
 from handlers.admin import get_admin_keyboard, ADMIN_IDS
@@ -8,9 +8,13 @@ from handlers.main_keyboard import get_main_keyboard
 from services.db import AsyncDB
 from aiogram.types import BotCommand
 from aiogram import Bot
+import os
+from dotenv import load_dotenv
 
+ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))  # Преобразуем в список int
 router = Router()
-
+#admin_filter = AdminFilter(admin_ids=ADMIN_IDS)
+load_dotenv()
 # Создаём клавиатуру с командами
 commands_kb = ReplyKeyboardMarkup(
     keyboard=[
@@ -83,6 +87,24 @@ async def cmd_help(message: Message):
         ""
         ""
         ""
+    )
+    await message.answer(help_text)
+
+admin_router = Router()
+@admin_router.message(Command("help_adm"), admin_filter)
+async def help_admin(message: Message):
+    help_text = (
+        "🛠 Команды администратора:\n\n"
+        "/adminpanel - Открыть админ-панель\n"
+        "/export_users_csv - Экспорт пользователей в CSV\n"
+        "/export_teams_xlsx - Экспорт команд в XLSX\n"
+        "/remove_user <id> - Удалить пользователя\n"
+        "/delete_event <id> - Удалить мероприятие\n"
+        "/create_event - Создать новое мероприятие\n"
+        "/check_applications - Проверить заявки\n"
+        "/invite_requests - Просмотр заявок на приглашение\n"
+        "/manage_requests - Управление заявками\n"
+        "/help_adm - Этот список команд\n"
     )
     await message.answer(help_text)
 
